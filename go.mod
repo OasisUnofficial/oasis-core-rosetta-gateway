@@ -4,6 +4,10 @@ go 1.26.2
 
 replace github.com/cometbft/cometbft => github.com/oasisprotocol/cometbft v0.37.18-oasis2
 
+// Temporarily using a lower version until Oasis Core is upgraded to v26.0.
+// This is only needed for test builds.
+replace github.com/dgraph-io/ristretto v1.0.0 => github.com/dgraph-io/ristretto v0.1.1
+
 require (
 	github.com/coinbase/rosetta-cli v0.10.3
 	github.com/coinbase/rosetta-sdk-go v0.8.3
@@ -43,6 +47,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
+	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
