@@ -8,7 +8,7 @@
 #
 # Build stage
 #
-FROM golang:1.22 AS build
+FROM golang:1.26 AS build
 
 # Install prerequisites.
 RUN apt-get update && apt-get install -y bzip2 libseccomp-dev
@@ -58,10 +58,10 @@ RUN git clone --single-branch --branch $GATEWAY_BRANCH ${GATEWAY_GITHUB} /usr/lo
     cp oasis-rosetta-gateway /usr/bin/ && \
     mkdir -p /usr/local/misc-gateway && \
     cp -r \
-        docker/service \
-        docker/config.yml \
-        docker/config-testnet.yml \
-        /usr/local/misc-gateway/ && \
+    docker/service \
+    docker/config.yml \
+    docker/config-testnet.yml \
+    /usr/local/misc-gateway/ && \
     make nuke && \
     cd / && rm -rf /usr/local/build-gateway
 

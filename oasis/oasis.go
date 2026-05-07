@@ -171,8 +171,8 @@ func (c *grpcClient) GetChainID(ctx context.Context) (string, error) {
 	c.Lock()
 	defer c.Unlock()
 
-	client := consensus.NewConsensusClient(conn)
-	c.chainID, err = client.GetChainContext(ctx)
+	client := consensus.NewServicesClient(conn)
+	c.chainID, err = client.Core().GetChainContext(ctx)
 	if err != nil {
 		logger.Debug("GetChainID: failed to get chain context", "err", err)
 		return "", err
@@ -185,8 +185,8 @@ func (c *grpcClient) GetBlock(ctx context.Context, height int64) (*Block, error)
 	if err != nil {
 		return nil, err
 	}
-	client := consensus.NewConsensusClient(conn)
-	blk, err := client.GetBlock(ctx, height)
+	client := consensus.NewServicesClient(conn)
+	blk, err := client.Core().GetBlock(ctx, height)
 	if err != nil {
 		logger.Debug("GetBlock: failed to get block",
 			"height", height,
@@ -204,7 +204,7 @@ func (c *grpcClient) GetBlock(ctx context.Context, height int64) (*Block, error)
 		parentHeight = c.genesisHeight
 	}
 
-	parentBlk, err := client.GetBlock(ctx, parentHeight)
+	parentBlk, err := client.Core().GetBlock(ctx, parentHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -239,8 +239,8 @@ func (c *grpcClient) GetAccount(ctx context.Context, height int64, owner staking
 	if err != nil {
 		return nil, err
 	}
-	client := staking.NewStakingClient(conn)
-	return client.Account(ctx, &staking.OwnerQuery{
+	client := consensus.NewServicesClient(conn)
+	return client.Staking().Account(ctx, &staking.OwnerQuery{
 		Height: height,
 		Owner:  owner,
 	})
@@ -255,8 +255,8 @@ func (c *grpcClient) GetDelegations(
 	if err != nil {
 		return nil, err
 	}
-	client := staking.NewStakingClient(conn)
-	return client.DelegationsFor(ctx, &staking.OwnerQuery{
+	client := consensus.NewServicesClient(conn)
+	return client.Staking().DelegationsFor(ctx, &staking.OwnerQuery{
 		Height: height,
 		Owner:  owner,
 	})
@@ -271,8 +271,8 @@ func (c *grpcClient) GetDebondingDelegations(
 	if err != nil {
 		return nil, err
 	}
-	client := staking.NewStakingClient(conn)
-	return client.DebondingDelegationsFor(ctx, &staking.OwnerQuery{
+	client := consensus.NewServicesClient(conn)
+	return client.Staking().DebondingDelegationsFor(ctx, &staking.OwnerQuery{
 		Height: height,
 		Owner:  owner,
 	})
@@ -286,8 +286,8 @@ func (c *grpcClient) GetTransactionsWithResults(
 	if err != nil {
 		return nil, err
 	}
-	client := consensus.NewConsensusClient(conn)
-	return client.GetTransactionsWithResults(ctx, height)
+	client := consensus.NewServicesClient(conn)
+	return client.Core().GetTransactionsWithResults(ctx, height)
 }
 
 func (c *grpcClient) GetUnconfirmedTransactions(ctx context.Context) ([][]byte, error) {
@@ -295,8 +295,8 @@ func (c *grpcClient) GetUnconfirmedTransactions(ctx context.Context) ([][]byte, 
 	if err != nil {
 		return nil, err
 	}
-	client := consensus.NewConsensusClient(conn)
-	return client.GetUnconfirmedTransactions(ctx)
+	client := consensus.NewServicesClient(conn)
+	return client.Core().GetUnconfirmedTransactions(ctx)
 }
 
 func (c *grpcClient) GetStakingEvents(ctx context.Context, height int64) ([]*staking.Event, error) {
@@ -304,8 +304,8 @@ func (c *grpcClient) GetStakingEvents(ctx context.Context, height int64) ([]*sta
 	if err != nil {
 		return nil, err
 	}
-	client := staking.NewStakingClient(conn)
-	return client.GetEvents(ctx, height)
+	client := consensus.NewServicesClient(conn)
+	return client.Staking().GetEvents(ctx, height)
 }
 
 func (c *grpcClient) SubmitTxNoWait(ctx context.Context, tx *transaction.SignedTransaction) error {
@@ -313,8 +313,8 @@ func (c *grpcClient) SubmitTxNoWait(ctx context.Context, tx *transaction.SignedT
 	if err != nil {
 		return err
 	}
-	client := consensus.NewConsensusClient(conn)
-	return client.SubmitTxNoWait(ctx, tx)
+	client := consensus.NewServicesClient(conn)
+	return client.Core().SubmitTxNoWait(ctx, tx)
 }
 
 func (c *grpcClient) GetNextNonce(ctx context.Context, addr staking.Address, height int64) (uint64, error) {
@@ -322,11 +322,15 @@ func (c *grpcClient) GetNextNonce(ctx context.Context, addr staking.Address, hei
 	if err != nil {
 		return 0, err
 	}
-	client := consensus.NewConsensusClient(conn)
-	return client.GetSignerNonce(ctx, &consensus.GetSignerNonceRequest{
-		AccountAddress: addr,
-		Height:         height,
+	client := consensus.NewServicesClient(conn)
+	account, err := client.Staking().Account(ctx, &staking.OwnerQuery{
+		Height: height,
+		Owner:  addr,
 	})
+	if err != nil {
+		return 0, err
+	}
+	return account.General.Nonce, nil
 }
 
 func (c *grpcClient) GetStatus(ctx context.Context) (*control.Status, error) {
