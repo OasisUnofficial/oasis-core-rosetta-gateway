@@ -1,6 +1,6 @@
 module github.com/oasisprotocol/oasis-rosetta-gateway
 
-go 1.22.3
+go 1.26.2
 
 replace github.com/cometbft/cometbft => github.com/oasisprotocol/cometbft v0.37.2-oasis1
 
